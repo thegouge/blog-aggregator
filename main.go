@@ -1,14 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
+	"github.com/thegouge/blog-aggregator/internal/database"
+
+	_ "github.com/lib/pq"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	godotenv.Load()
@@ -16,11 +22,22 @@ func main() {
 	if PORT == "" {
 		log.Fatal("PORT environment variable is not set!")
 	}
+	dbURL := os.Getenv("DB_CONNECTOR")
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal("Error trying to load database")
+	}
+
+	dbQueries := database.New(db)
+
+	apiCfg := apiConfig{DB: dbQueries}
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("POST /v1/users", apiCfg.HandleUserCreate)
+
 	mux.HandleFunc("GET /v1/healthz", healthHandler)
-	mux.HanldeFunc("GET /v1/err", errHandler)
+	mux.HandleFunc("GET /v1/err", errHandler)
 
 	corsMux := middlewareCors(mux)
 
