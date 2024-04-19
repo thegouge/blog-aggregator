@@ -12,24 +12,18 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, name, api_key)
-VALUES ($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
+VALUES ($1, $2, $2, $3, encode(sha256(random()::text::bytea), 'hex'))
 RETURNING id, created_at, updated_at, name, api_key
 `
 
 type CreateUserParams struct {
 	ID        string
 	CreatedAt time.Time
-	UpdatedAt time.Time
 	Name      string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
-		arg.ID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.Name,
-	)
+	row := q.db.QueryRowContext(ctx, createUser, arg.ID, arg.CreatedAt, arg.Name)
 	var i User
 	err := row.Scan(
 		&i.ID,
