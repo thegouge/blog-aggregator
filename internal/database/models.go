@@ -5,23 +5,22 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 )
 
 type Feed struct {
-	ID        string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Name      sql.NullString
-	Url       sql.NullString
-	UserID    sql.NullString
+	ID        string `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string `json:"name"`
+	Url       string `json:"url"`
+	UserID    string `json:"user_id"`
 }
 
 type User struct {
-	ID        string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Name      string
-	ApiKey    string
+	ID        string `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string `json:"name"`
+	ApiKey    string `json:"api_key"`
 }

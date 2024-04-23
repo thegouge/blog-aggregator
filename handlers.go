@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,7 +38,6 @@ func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	newUser, err := api.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        newId,
 		CreatedAt: nowTime,
-		UpdatedAt: nowTime,
 		Name:      params.Name,
 	})
 
@@ -51,27 +49,40 @@ func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, newUser)
 }
 
-func (api *apiConfig) HandleGetUserByAPI(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
+func (api *apiConfig) HandleGetUserByAPI(w http.ResponseWriter, r *http.Request, user database.User) {
+	respondWithJSON(w, http.StatusOK, user)
+}
 
-	if authHeader == "" {
-		respondWithError(w, 400, "you need to supply an auth token!")
-		return
+func (api *apiConfig) addFeedHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	type feedParams struct {
+		Name string `json:"name"`
+		Url  string `json:"url"`
 	}
+	decoder := json.NewDecoder(r.Body)
+	params := feedParams{}
 
-	s := strings.Split(authHeader, " ")
-
-	if s[0] != "ApiKey" || len(s) != 2 {
-		respondWithError(w, 400, "invalid auth token!")
-		return
-	}
-
-	user, err := api.DB.GetUserByAPI(r.Context(), s[1])
+	err := decoder.Decode(&params)
 
 	if err != nil {
-		respondWithError(w, 404, "Error finding user with the provided API Key")
+		respondWithError(w, 500, fmt.Sprintf("Error decoding feed Object: %v", err))
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, user)
+	newId := uuid.NewString()
+
+	feedData := database.CreateFeedParams{
+		ID:        newId,
+		CreatedAt: time.Now(),
+		Name:      params.Name,
+		Url:       params.Url,
+		UserID:    user.ID,
+	}
+
+	feedObject, err := api.DB.CreateFeed(r.Context(), feedData)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error creating feed object: %v", err))
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, feedObject)
 }

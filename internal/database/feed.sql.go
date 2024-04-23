@@ -7,7 +7,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
 
@@ -20,9 +19,9 @@ RETURNING id, created_at, updated_at, name, url, user_id
 type CreateFeedParams struct {
 	ID        string
 	CreatedAt time.Time
-	Name      sql.NullString
-	Url       sql.NullString
-	UserID    sql.NullString
+	Name      string
+	Url       string
+	UserID    string
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {

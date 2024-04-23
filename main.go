@@ -35,10 +35,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /v1/users", apiCfg.HandleUserCreate)
+	mux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.addFeedHandler))
 
 	mux.HandleFunc("GET /v1/healthz", healthHandler)
 	mux.HandleFunc("GET /v1/err", errHandler)
-	mux.HandleFunc("GET /v1/users", apiCfg.HandleGetUserByAPI)
+	mux.HandleFunc("GET /v1/users", apiCfg.middlewareAuth(apiCfg.HandleGetUserByAPI))
 
 	corsMux := middlewareCors(mux)
 
@@ -49,17 +50,4 @@ func main() {
 
 	log.Printf("Serving on port : %s\n", PORT)
 	log.Fatal(srv.ListenAndServe())
-}
-
-func middlewareCors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
