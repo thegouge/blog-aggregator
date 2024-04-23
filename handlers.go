@@ -86,3 +86,12 @@ func (api *apiConfig) addFeedHandler(w http.ResponseWriter, r *http.Request, use
 
 	respondWithJSON(w, http.StatusOK, feedObject)
 }
+
+func (api *apiConfig) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, err := api.DB.GetAllFeeds(r.Context())
+	if err != nil {
+		respondWithError(w, 500, "Something went wrong fetching all the feeds!")
+	}
+
+	respondWithJSON(w, http.StatusOK, feeds)
+}

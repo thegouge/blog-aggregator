@@ -40,6 +40,7 @@ func main() {
 	mux.HandleFunc("GET /v1/healthz", healthHandler)
 	mux.HandleFunc("GET /v1/err", errHandler)
 	mux.HandleFunc("GET /v1/users", apiCfg.middlewareAuth(apiCfg.HandleGetUserByAPI))
+	mux.HandleFunc("GET /v1/feeds", apiCfg.HandleGetFeeds)
 
 	corsMux := middlewareCors(mux)
 
