@@ -95,3 +95,36 @@ func (api *apiConfig) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, feeds)
 }
+
+func (api *apiConfig) addFeedFollowHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	type requestParams struct {
+		FeedId string `json:"feed_id"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	params := requestParams{}
+
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error decoding json body: %v", err))
+		return
+	}
+
+	newId := uuid.NewString()
+
+	feedFollowData := database.CreateFeedFollowParams{
+		ID:        newId,
+		CreatedAt: time.Now(),
+		FeedID:    params.FeedId,
+		UserID:    user.ID,
+	}
+
+	feedFollowObject, err := api.DB.CreateFeedFollow(r.Context(), feedFollowData)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error creating feed object: %v", err))
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, feedFollowObject)
+}
