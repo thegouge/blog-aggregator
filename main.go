@@ -34,14 +34,17 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /v1/users", apiCfg.HandleUserCreate)
-	mux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.addFeedHandler))
-	mux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.addFeedFollowHandler))
-
 	mux.HandleFunc("GET /v1/healthz", healthHandler)
 	mux.HandleFunc("GET /v1/err", errHandler)
 	mux.HandleFunc("GET /v1/users", apiCfg.middlewareAuth(apiCfg.HandleGetUserByAPI))
 	mux.HandleFunc("GET /v1/feeds", apiCfg.HandleGetFeeds)
+	mux.HandleFunc("GET /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.getUsersFeedFollowsHandler))
+
+	mux.HandleFunc("POST /v1/users", apiCfg.HandleUserCreate)
+	mux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.addFeedHandler))
+	mux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.addFeedFollowHandler))
+
+	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.deleteFeedFollowHandler))
 
 	corsMux := middlewareCors(mux)
 

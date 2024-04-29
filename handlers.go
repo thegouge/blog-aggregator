@@ -68,23 +68,46 @@ func (api *apiConfig) addFeedHandler(w http.ResponseWriter, r *http.Request, use
 		return
 	}
 
-	newId := uuid.NewString()
-
-	feedData := database.CreateFeedParams{
-		ID:        newId,
+	feedObject, err := api.DB.CreateFeed(r.Context(), database.CreateFeedParams{
+		ID:        uuid.NewString(),
 		CreatedAt: time.Now(),
 		Name:      params.Name,
 		Url:       params.Url,
 		UserID:    user.ID,
-	}
+	})
 
-	feedObject, err := api.DB.CreateFeed(r.Context(), feedData)
 	if err != nil {
 		respondWithError(w, 500, fmt.Sprintf("Error creating feed object: %v", err))
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, feedObject)
+	feedFollowObject, err := api.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
+		ID:        uuid.NewString(),
+		CreatedAt: time.Now(),
+		FeedID:    feedObject.ID,
+		UserID:    user.ID,
+	})
+
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error creating feed object: %v", err))
+		return
+	}
+
+	fmt.Println(struct {
+		feed       Feed
+		feedFollow FeedFollow
+	}{
+		feed:       databaseFeedToFeed(feedObject),
+		feedFollow: databaseFeedFollowToFeedFollow(feedFollowObject),
+	})
+
+	respondWithJSON(w, http.StatusOK, struct {
+		feed       Feed
+		feedFollow FeedFollow
+	}{
+		feed:       databaseFeedToFeed(feedObject),
+		feedFollow: databaseFeedFollowToFeedFollow(feedFollowObject),
+	})
 }
 
 func (api *apiConfig) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
@@ -113,18 +136,39 @@ func (api *apiConfig) addFeedFollowHandler(w http.ResponseWriter, r *http.Reques
 
 	newId := uuid.NewString()
 
-	feedFollowData := database.CreateFeedFollowParams{
+	feedFollowObject, err := api.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        newId,
 		CreatedAt: time.Now(),
 		FeedID:    params.FeedId,
 		UserID:    user.ID,
-	}
+	})
 
-	feedFollowObject, err := api.DB.CreateFeedFollow(r.Context(), feedFollowData)
 	if err != nil {
 		respondWithError(w, 500, fmt.Sprintf("Error creating feed object: %v", err))
 		return
 	}
 
 	respondWithJSON(w, http.StatusOK, feedFollowObject)
+}
+
+func (api *apiConfig) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollowID := r.PathValue("feedFollowID")
+
+	err := api.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{UserID: user.ID, ID: feedFollowID})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't delete feed follow")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, struct{}{})
+}
+
+func (api *apiConfig) getUsersFeedFollowsHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	userFeeds, err := api.DB.GetUsersFeeds(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Couldn't find feeds for the current user")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, userFeeds)
 }
