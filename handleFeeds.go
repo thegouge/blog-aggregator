@@ -50,20 +50,12 @@ func (api *apiConfig) addFeedHandler(w http.ResponseWriter, r *http.Request, use
 		return
 	}
 
-	fmt.Println(struct {
-		feed       Feed
-		feedFollow FeedFollow
-	}{
-		feed:       databaseFeedToFeed(feedObject),
-		feedFollow: databaseFeedFollowToFeedFollow(feedFollowObject),
-	})
-
 	respondWithJSON(w, http.StatusOK, struct {
-		feed       Feed
-		feedFollow FeedFollow
+		Feed       Feed
+		FeedFollow FeedFollow
 	}{
-		feed:       databaseFeedToFeed(feedObject),
-		feedFollow: databaseFeedFollowToFeedFollow(feedFollowObject),
+		Feed:       databaseFeedToFeed(feedObject),
+		FeedFollow: databaseFeedFollowToFeedFollow(feedFollowObject),
 	})
 }
 
