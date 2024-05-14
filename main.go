@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/joho/godotenv"
 
 	"github.com/thegouge/blog-aggregator/internal/database"
 
@@ -32,6 +34,8 @@ func main() {
 
 	apiCfg := apiConfig{DB: dbQueries}
 
+	go startScraping(dbQueries, 10, time.Minute)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /v1/healthz", healthHandler)
@@ -55,4 +59,5 @@ func main() {
 
 	log.Printf("Serving on port : %s\n", PORT)
 	log.Fatal(srv.ListenAndServe())
+
 }
