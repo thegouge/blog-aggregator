@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 )
@@ -33,4 +36,33 @@ func respondWithError(w http.ResponseWriter, code int, msg string) {
 	respondWithJSON(w, code, errResponse{
 		Error: msg,
 	})
+}
+
+func fetchFeedData(url string) (RssFeed, error) {
+	response, err := http.Get(url)
+
+	if err != nil {
+		return RssFeed{}, err
+	}
+
+	defer response.Body.Close()
+	if response.StatusCode > 399 {
+		return RssFeed{}, fmt.Errorf("bad status code: %v", response.StatusCode)
+	}
+
+	body, err := io.ReadAll(response.Body)
+
+	if err != nil {
+		return RssFeed{}, err
+	}
+
+	responseData := RssFeed{}
+
+	err = xml.Unmarshal(body, &responseData)
+
+	if err != nil {
+		return RssFeed{}, err
+	}
+
+	return responseData, nil
 }
