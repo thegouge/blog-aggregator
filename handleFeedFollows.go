@@ -55,7 +55,7 @@ func (api *apiConfig) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (api *apiConfig) getUsersFeedFollowsHandler(w http.ResponseWriter, r *http.Request, user database.User) {
-	userFeeds, err := api.DB.GetUsersFeeds(r.Context(), user.ID)
+	userFeeds, err := api.DB.GetUsersFeedFollows(r.Context(), user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Couldn't find feeds for the current user")
 		return

@@ -9,7 +9,7 @@ DELETE FROM feed_follows
 WHERE $1 = id AND user_id = $2;
 --
 
--- name: GetUsersFeeds :many
+-- name: GetUsersFeedFollows :many
 SELECT * FROM feed_follows
 WHERE user_id = $1;
 
