@@ -1,5 +1,5 @@
 export default function Header() {
 	return (
-		<header>This is the Header!</header>
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">This is the Header!</div>
 	)
 }
