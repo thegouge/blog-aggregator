@@ -10,16 +10,18 @@ import (
 	"github.com/thegouge/blog-aggregator/internal/database"
 )
 
-func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
-	type createUserRequestBody struct {
-		Name string `json:"name"`
-	}
+type UserRequestBody struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
 
+func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	params := createUserRequestBody{}
+	params := UserRequestBody{}
+
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 500, fmt.Sprintf("Error decoding User Name: %v", err))
+		respondWithError(w, 500, fmt.Sprintf("Error decoding User Params: %v", err))
 		return
 	}
 
@@ -31,6 +33,7 @@ func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 		ID:        newId,
 		CreatedAt: nowTime,
 		Name:      params.Name,
+		Crypt:     params.Password,
 	})
 
 	if err != nil {
@@ -42,5 +45,33 @@ func (api *apiConfig) HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *apiConfig) HandleGetUserByAPI(w http.ResponseWriter, r *http.Request, user database.User) {
+	respondWithJSON(w, http.StatusOK, user)
+}
+
+func (api *apiConfig) HandleUserLogin(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	params := UserRequestBody{}
+
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error decoding User Params: %v", err))
+		return
+	}
+
+	user, err := api.DB.LogInAsUser(r.Context(), database.LogInAsUserParams{
+		Name:  params.Name,
+		Crypt: params.Password,
+	})
+
+	if user.Name == "" {
+		respondWithError(w, http.StatusForbidden, "Error logging in, username or password incorrect")
+		return
+	}
+
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Error logging in to user %v", err))
+		return
+	}
+
 	respondWithJSON(w, http.StatusOK, user)
 }

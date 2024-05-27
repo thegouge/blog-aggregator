@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
+	// "time"
 
 	"github.com/joho/godotenv"
 
@@ -34,7 +34,7 @@ func main() {
 
 	apiCfg := apiConfig{DB: dbQueries}
 
-	go startScraping(dbQueries, 10, time.Minute)
+	// go startScraping(dbQueries, 10, time.Minute)
 
 	mux := http.NewServeMux()
 
@@ -48,6 +48,7 @@ func main() {
 	mux.HandleFunc("POST /v1/users", apiCfg.HandleUserCreate)
 	mux.HandleFunc("POST /v1/feeds", apiCfg.middlewareAuth(apiCfg.addFeedHandler))
 	mux.HandleFunc("POST /v1/feed_follows", apiCfg.middlewareAuth(apiCfg.addFeedFollowHandler))
+	mux.HandleFunc("POST /v1/login", apiCfg.HandleUserLogin)
 
 	mux.HandleFunc("DELETE /v1/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.deleteFeedFollowHandler))
 
